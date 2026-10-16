@@ -28,9 +28,22 @@ def sky_color(wave):
     return palette[idx]
 
 
+ACTIVE_GAME = None
+RESCUE_EFFECTS = []
+
+
 def on_humanoid_rescued(humanoid):
     """Called when the player catches a falling humanoid; add a bonus or celebration here."""
-    pass
+    # Spawn floating celebration banner at rescued humanoid position
+    RESCUE_EFFECTS.append({
+        "x": humanoid.x,
+        "y": humanoid.y - 18,
+        "text": "+500 RESCUED!",
+        "life": 1.4,
+    })
+    # Award temporary invulnerability / energy shield boost to protect player
+    if ACTIVE_GAME and ACTIVE_GAME.player:
+        ACTIVE_GAME.player.invulnerable = max(ACTIVE_GAME.player.invulnerable, 2.5)
 
 
 def bonus_life_threshold():
@@ -130,6 +143,8 @@ class Player:
 
 class Game:
     def __init__(self):
+        global ACTIVE_GAME
+        ACTIVE_GAME = self
         self.font = pygame.font.Font(None, 26)
         self.reset()
 
@@ -181,6 +196,11 @@ class Game:
                 humanoid.state, humanoid.y = "ground", ground_y(humanoid.x) - 8
                 self.score += 500
                 on_humanoid_rescued(humanoid)
+        for fx in RESCUE_EFFECTS[:]:
+            fx["life"] -= dt
+            fx["y"] -= 30 * dt
+            if fx["life"] <= 0:
+                RESCUE_EFFECTS.remove(fx)
         self.update_bullets(dt)
         if player.invulnerable <= 0:
             for lander in self.landers:
@@ -247,9 +267,16 @@ class Game:
             sx = self.screen_x(bullet["x"])
             pygame.draw.line(screen, (255, 255, 200), (sx - 8, bullet["y"]), (sx + 8, bullet["y"]), 2)
         player = self.player
+        f, cx = player.facing, VIEW_W / 2
         if player.invulnerable <= 0 or int(player.invulnerable * 10) % 2 == 0:
-            f, cx = player.facing, VIEW_W / 2
             pygame.draw.polygon(screen, (240, 240, 250), [(cx + f * 18, player.y), (cx - f * 14, player.y - 8), (cx - f * 14, player.y + 8)])
+        if player.invulnerable > 0:
+            pygame.draw.circle(screen, (80, 200, 255), (int(cx), int(player.y)), 24, 2)
+        for fx in RESCUE_EFFECTS:
+            sx = self.screen_x(fx["x"])
+            if -60 < sx < VIEW_W + 60:
+                txt = self.font.render(fx["text"], True, (255, 230, 80))
+                screen.blit(txt, (sx - txt.get_width() // 2, fx["y"]))
         self.draw_radar(screen)
         hud = self.font.render(f"Score {self.score}  Lives {self.lives}  Wave {self.wave}  Humanoids {len(self.humanoids)}", True, (240, 240, 240))
         screen.blit(hud, (10, RADAR_H + 4))
