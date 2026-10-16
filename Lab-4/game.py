@@ -199,11 +199,21 @@ class Game:
     def draw_radar(self, screen):
         pygame.draw.rect(screen, (10, 10, 30), (0, 0, VIEW_W, RADAR_H))
         pygame.draw.rect(screen, (90, 90, 140), (0, 0, VIEW_W, RADAR_H), 1)
+
+        # Viewport indicator box showing the screen camera visible section
+        cam_w = int(VIEW_W / WORLD_W * VIEW_W)
+        cam_x = int(((self.player.x - VIEW_W / 2) % WORLD_W) / WORLD_W * VIEW_W)
+        if cam_x + cam_w <= VIEW_W:
+            pygame.draw.rect(screen, (50, 70, 110), (cam_x, 2, cam_w, RADAR_H - 4), 1)
+        else:
+            pygame.draw.rect(screen, (50, 70, 110), (cam_x, 2, VIEW_W - cam_x, RADAR_H - 4), 1)
+            pygame.draw.rect(screen, (50, 70, 110), (0, 2, cam_w - (VIEW_W - cam_x), RADAR_H - 4), 1)
+
         blips = [(h.x, h.y, (90, 230, 120)) for h in self.humanoids]
         blips += [(l.x, l.y, (255, 90, 90) if l.mutant else (230, 200, 60)) for l in self.landers]
         blips.append((self.player.x, self.player.y, (255, 255, 255)))
         for x, y, color in blips:
-            rx = self.screen_x(x) % VIEW_W
+            rx = int((x % WORLD_W) / WORLD_W * VIEW_W)
             ry = (y - PLAY_TOP) / (VIEW_H - PLAY_TOP) * (RADAR_H - 8) + 4
             pygame.draw.rect(screen, color, (rx - 2, ry - 2, 4, 4))
 
