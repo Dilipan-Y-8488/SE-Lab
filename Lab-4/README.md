@@ -1,91 +1,55 @@
-# Defender Repair Lab
+# Defender Repair Lab (Lab 4: Vibe Coding)
 
-This project is a single-file Defender-lite clone using **Pygame**. It introduces students to camera wrapping, world-space vs. screen-space coordinates, and multi-stage enemy AI using a small, readable object-oriented codebase.
-
----
-
-## What's Provided
-
-A working Defender-lite game with:
-
-- A player ship that thrusts left/right and adjusts altitude, wrapping around a world several screens wide
-- Humanoids on the ground that landers try to abduct, carry upward, and turn into a faster "mutant" enemy if they reach the top
-- A radar strip along the top meant to show where everything is across the whole world
-- Waves, lives, scoring, and bonus points for rescuing a humanoid mid-fall
-
-It has **one deliberate bug** and **three optional features** left as empty functions. You are expected to **analyze**, **interact with an AI assistant**, and **complete/fix** the game to make it fully functional and more interesting.
-
-### **Use an LLM (e.g. ChatGPT or Claude) as your debugging and pair-programming partner for this lab.**
+**Student Name:** Dilipan Y  
+**SRN:** PES1UG24AM092  
+**Original Lab Repository:** [SETAPESU26/28_defender](https://github.com/SETAPESU26/28_defender)  
+**Submission Repository:** [Dilipan-Y-8488/SE-Lab](https://github.com/Dilipan-Y-8488/SE-Lab)
 
 ---
 
-## Getting Started
+## Deliverables Summary
 
-### Setup
-
-1. Make sure you have Python 3.10+ installed.
-2. Install dependencies:
-
-```bash
-pip install pygame
-```
-
-3. Run the game:
-
-```bash
-python game.py
-```
-
-**Controls:** Left/Right to thrust, Up/Down to change altitude, Space to fire, `R` to reset.
+| Deliverable | Location / File | Status |
+| :--- | :--- | :--- |
+| **Before Video** | `Lab-4/Before.mp4` | Uploaded & committed |
+| **After Video** | `Lab-4/After.mp4` | Recorded after fixes & features |
+| **Updated Code** | `Lab-4/game.py` | Complete with per-task commits |
+| **Chat History** | `Lab-4/chat_history.pdf` | Exported and formatted |
 
 ---
 
-## Tasks to Complete
+## Completed Tasks
 
-Each task must be completed using an iterative process involving LLM suggestions and your critical code review.
-
-### Task 1: Fix the radar bug
-
-> The radar strip is supposed to show every humanoid, lander, and the player at their true position across the entire wrapping world, so threats anywhere in the world are visible at a glance. In the current build, the radar only ever shows things clustered near the player's own position, because it plots each blip's position *relative to the player* (screen space) instead of its absolute position in the world. Fix `draw_radar` so each blip's horizontal position on the radar reflects its actual place in the world, from one edge to the other, regardless of where the player currently is.
+### Task 1: Fix the Radar Bug
+- **Issue:** The radar plotted blips using screen-space coordinates relative to the player (`screen_x(x) % VIEW_W`), causing all entities to cluster artificially around the center.
+- **Fix:** Mapped absolute world coordinates directly to the radar width: `rx = int((x % WORLD_W) / WORLD_W * VIEW_W)`. Added a camera viewport indicator box showing the currently visible section of the world.
+- **Commit:** `62661d7` - `Lab 4: Task 1 - Fix radar blip positioning to world-space coordinates and add scanner viewport indicator`
 
 ### Task 2: Implement `sky_color(wave)`
-
-> Called once per frame in `draw`, as `screen.fill(sky_color(self.wave) or (5, 5, 20))`. It receives the current wave number and should return an `(r, g, b)` color, or `None` to keep the default near-black sky. Idea: brighten or shift hue as waves progress.
+- **Issue:** The sky color function was an empty stub (`pass`), causing the game to retain the static default background.
+- **Fix:** Implemented dynamic atmospheric cycling colors (deep midnight navy, alien violet, twilight magenta, crimson nebula, toxic emerald, arctic dusk) that shift with each advancing wave while preserving high entity contrast.
+- **Commit:** `9071c51` - `Lab 4: Task 2 - Implement sky_color(wave) with dynamic atmospheric color shifting per wave`
 
 ### Task 3: Implement `on_humanoid_rescued(humanoid)`
-
-> Called from `update()` the moment the player catches a falling humanoid (one a lander dropped or released mid-air), right after the 500-point bonus is added and the humanoid is placed safely back on the ground. It receives the rescued `Humanoid`. Its return value is ignored. Idea: a "+500" popup, or a short invulnerability boost as a reward.
+- **Issue:** Rescuing a falling humanoid mid-air previously gave score without visual celebration or safety mechanics.
+- **Fix:** Added floating animated `+500 RESCUED!` celebration popups at the rescue coordinate and awarded a 2.5-second energy shield / invulnerability ring protecting the player from surrounding hazards upon landing a rescue.
+- **Commit:** `b532705` - `Lab 4: Task 3 - Implement on_humanoid_rescued with floating celebration popup and shield boost`
 
 ### Task 4: Implement `bonus_life_threshold()`
-
-> Called every frame in `update()`. It takes no arguments and should return an integer score value, or `None` to disable bonus lives entirely. Whenever the score crosses a multiple of that value for the first time, one life is awarded automatically — the bookkeeping (`self.bonus_awarded`) is already implemented, so you only need to choose the threshold. Idea: return `10000`.
-
----
-
-## Expected Behavior
-
-- The player and every enemy wrap smoothly across both edges of the world
-- The radar shows the whole world at once; only the main viewport centers on the player, not the radar
-- A lander that finishes carrying a humanoid off the top of the screen becomes a faster, more aggressive mutant
-- Catching a humanoid mid-fall returns it safely to the ground and awards points; letting it fall too far kills it
-- The game ends when lives reach zero
+- **Issue:** The bonus life threshold was unimplemented (`pass`), preventing players from earning extra lives during gameplay.
+- **Fix:** Implemented `bonus_life_threshold()` returning `10000`, automatically awarding an extra life each time the player's score crosses a multiple of 10,000 points.
+- **Commit:** `cc88409` - `Lab 4: Task 4 - Implement bonus_life_threshold to grant extra life every 10,000 points`
 
 ---
 
-## Folder Structure
+## How to Run the Game
 
-```
-defender/
-├── game.py
-└── README.md
-```
+1. Double-click `run_game.bat`, or run from terminal:
+   ```bash
+   uv run --python 3.12 --with pygame python game.py
+   ```
 
----
-
-## Submission Checklist
-
-Submission is only the following three things:
-
-- [] A 10-second video of gameplay **before** your changes, showing the bug/broken behavior
-- [] A 10-second video of gameplay **after** your changes, showing the bug fixed and the new features working
-- [] The Chat/LLM used page link, with the complete chat history
+2. **Controls:**
+   - **Arrow Keys:** Left/Right to thrust, Up/Down to ascend/descend
+   - **Spacebar:** Fire lasers
+   - **R:** Reset / Restart game
